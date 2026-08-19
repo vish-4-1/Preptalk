@@ -1,0 +1,324 @@
+import { Router } from 'express';
+import { PrismaClient } from '@prisma/client';
+import { authenticateToken, AuthenticatedRequest } from '../middleware/auth.middleware';
+import { connectPlatformSchema } from '../validators';
+import { normalizerService } from '../services/normalizer.service';
+import { skillEngineService } from '../services/skillEngine.service';
+import { grokService } from '../services/grok.service';
+
+const router = Router();
+const prisma = new PrismaClient();
+
+// Get Unified Student Profile
+router.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const studentProfileId = req.user?.studentProfileId;
+    if (!studentProfileId) {
+      return res.status(404).json({ error: 'Student profile not found' });
+    }
+
+    const profile = await prisma.studentProfile.findUnique({
+      where: { id: studentProfileId },
+      include: {
+        user: { select: { name: true, email: true, department: true, branch: true, passoutYear: true } },
+        connections: true,
+        gitHubProfile: true,
+        codingProfiles: true,
+        projects: true,
+        skills: { include: { skill: true } },
+        skillSnapshots: { orderBy: { createdAt: 'asc' } },
+        actionItems: { orderBy: { priority: 'asc' } },
+        projectRecommendations: true,
+        aiAnalyses: { orderBy: { analyzedAt: 'desc' }, take: 1 },
+      },
+    });
+
+    if (!profile) {
+      return res.status(404).json({ error: 'Profile record missing' });
+    }
+
+    return res.json({ profile });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Error fetching profile' });
+  }
+});
+
+// Connect Platform URL
+router.post('/connect', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const studentProfileId = req.user?.studentProfileId;
+    if (!studentProfileId) {
+      return res.status(404).json({ error: 'Student profile not found' });
+    }
+
+    const validated = connectPlatformSchema.parse(req.body);
+    const isValidUrl = normalizerService.validatePlatformUrl(validated.platform as any, validated.profileUrl);
+
+    if (!isValidUrl) {
+      return res.status(400).json({
+        error: `Invalid URL format for ${validated.platform}. Please provide a valid public profile URL.`,
+      });
+    }
+
+    const connection = await prisma.platformConnection.upsert({
+      where: {
+        studentProfileId_platform: {
+          studentProfileId,
+          platform: validated.platform,
+        },
+      },
+      update: {
+        profileUrl: validated.profileUrl,
+        isConnected: true,
+        errorState: null,
+      },
+      create: {
+        studentProfileId,
+        platform: validated.platform,
+        profileUrl: validated.profileUrl,
+        isConnected: true,
+      },
+    });
+
+    return res.json({
+      message: `${validated.platform} profile URL connected successfully`,
+      connection,
+    });
+  } catch (err: any) {
+    if (err.errors) {
+      return res.status(400).json({ error: 'Validation failed', details: err.errors });
+    }
+    return res.status(500).json({ error: err.message || 'Error connecting profile' });
+  }
+});
+
+// Synchronize Profiles & Run Engine
+router.post('/sync', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const studentProfileId = req.user?.studentProfileId;
+    if (!studentProfileId) {
+      return res.status(404).json({ error: 'Student profile not found' });
+    }
+
+    const connections = await prisma.platformConnection.findMany({
+      where: { studentProfileId, isConnected: true },
+    });
+
+    if (connections.length === 0) {
+      return res.status(400).json({
+        error: 'No connected profile URLs found. Please connect your GitHub or LeetCode profile first.',
+      });
+    }
+
+    const codingStatsList: any[] = [];
+    let devStats: any = undefined;
+
+    for (const conn of connections) {
+      try {
+        const result = await normalizerService.syncPlatform(conn.platform as any, conn.profileUrl);
+        await prisma.platformConnection.update({
+          where: { id: conn.id },
+          data: {
+            lastSyncedAt: new Date(),
+            errorState: result.error || null,
+          },
+        });
+
+        if (result.success && result.data) {
+          if (conn.platform === 'GITHUB') {
+            devStats = result.data;
+            await prisma.gitHubProfile.upsert({
+              where: { studentProfileId },
+              update: {
+                totalRepos: devStats.totalRepos,
+                publicRepos: devStats.publicRepos,
+                totalStars: devStats.totalStars,
+                totalForks: devStats.totalForks,
+                totalCommits: devStats.totalCommits,
+                prCount: devStats.prCount,
+                issueCount: devStats.issueCount,
+                languagesJson: JSON.stringify(devStats.languages),
+                topReposJson: JSON.stringify(devStats.topRepos),
+              },
+              create: {
+                studentProfileId,
+                totalRepos: devStats.totalRepos,
+                publicRepos: devStats.publicRepos,
+                totalStars: devStats.totalStars,
+                totalForks: devStats.totalForks,
+                totalCommits: devStats.totalCommits,
+                prCount: devStats.prCount,
+                issueCount: devStats.issueCount,
+                languagesJson: JSON.stringify(devStats.languages),
+                topReposJson: JSON.stringify(devStats.topRepos),
+              },
+            });
+          } else if (['LEETCODE', 'CODECHEF', 'HACKERRANK'].includes(conn.platform)) {
+            codingStatsList.push(result.data);
+            await prisma.codingProfile.upsert({
+              where: {
+                studentProfileId_platform: {
+                  studentProfileId,
+                  platform: conn.platform,
+                },
+              },
+              update: {
+                totalSolved: result.data.totalSolved,
+                easySolved: result.data.easySolved,
+                mediumSolved: result.data.mediumSolved,
+                hardSolved: result.data.hardSolved,
+                contestRating: result.data.contestRating,
+                globalRank: result.data.globalRank,
+                contestsParticipated: result.data.contestsParticipated,
+              },
+              create: {
+                studentProfileId,
+                platform: conn.platform,
+                totalSolved: result.data.totalSolved,
+                easySolved: result.data.easySolved,
+                mediumSolved: result.data.mediumSolved,
+                hardSolved: result.data.hardSolved,
+                contestRating: result.data.contestRating,
+                globalRank: result.data.globalRank,
+                contestsParticipated: result.data.contestsParticipated,
+              },
+            });
+          }
+        }
+      } catch (connErr: any) {
+        await prisma.platformConnection.update({
+          where: { id: conn.id },
+          data: { errorState: connErr.message },
+        });
+      }
+    }
+
+    // Run Deterministic Skill Engine
+    const calculated = skillEngineService.calculateScores(codingStatsList, devStats, {
+      linkedinConnected: connections.some((c) => c.platform === 'LINKEDIN'),
+    });
+
+    // Update Placement Readiness Index
+    await prisma.studentProfile.update({
+      where: { id: studentProfileId },
+      data: { placementReadiness: calculated.overallReadinessIndex },
+    });
+
+    // Store Skill Snapshot for Track Record
+    const monthKey = new Date().toISOString().slice(0, 7); // e.g. "2026-08"
+    await prisma.skillSnapshot.create({
+      data: {
+        studentProfileId,
+        snapshotMonth: monthKey,
+        dsaScore: calculated.dsaScore,
+        devScore: calculated.devScore,
+        dbmsScore: calculated.dbmsScore,
+        osScore: calculated.osScore,
+        overallScore: calculated.overallReadinessIndex,
+      },
+    });
+
+    // Run Grok AI Service Analysis
+    const studentUser = await prisma.user.findFirst({
+      where: { studentProfile: { id: studentProfileId } },
+    });
+
+    const normalizedProfileForGrok: any = {
+      identity: {
+        name: studentUser?.name || 'Student',
+        username: 'student',
+        email: studentUser?.email || '',
+      },
+      coding: {
+        combinedTotalSolved: codingStatsList.reduce((acc, c) => acc + (c.totalSolved || 0), 0),
+        combinedContestRatingMax: codingStatsList.reduce((max, c) => Math.max(max, c.contestRating || 0), 0),
+      },
+      development: devStats || {
+        totalRepos: 0,
+        publicRepos: 0,
+        totalStars: 0,
+        totalForks: 0,
+        totalCommits: 0,
+        prCount: 0,
+        issueCount: 0,
+        languages: {},
+        topRepos: [],
+      },
+      skills: Object.entries(calculated.breakdown).map(([name, val]) => ({
+        category: 'Technical',
+        name,
+        score: val.score,
+        verifiedBy: 'DETERMINISTIC_TELEMETRY',
+      })),
+      placementReadinessIndex: calculated.overallReadinessIndex,
+    };
+
+    const aiAnalysis = await grokService.analyzeProfile(normalizedProfileForGrok);
+
+    // Save AI Analysis in Database
+    await prisma.aIAnalysis.create({
+      data: {
+        studentProfileId,
+        rawInputJson: JSON.stringify(normalizedProfileForGrok),
+        structuredOutputJson: JSON.stringify(aiAnalysis),
+        readinessScore: aiAnalysis.placementReadiness,
+      },
+    });
+
+    // Populate/Update Action Items from AI recommendations
+    if (aiAnalysis.recommendedActions && aiAnalysis.recommendedActions.length > 0) {
+      // Clear old uncompleted action items for fresh syncing
+      await prisma.actionItem.deleteMany({
+        where: { studentProfileId, completed: false },
+      });
+
+      for (const act of aiAnalysis.recommendedActions) {
+        await prisma.actionItem.create({
+          data: {
+            studentProfileId,
+            title: act.title,
+            category: act.category,
+            priority: act.priority,
+            estimatedHours: act.estimatedHours,
+            reason: act.reason,
+            completed: false,
+          },
+        });
+      }
+    }
+
+    // Populate Project Recommendations
+    if (aiAnalysis.projectIdeas && aiAnalysis.projectIdeas.length > 0) {
+      await prisma.projectRecommendation.deleteMany({
+        where: { studentProfileId },
+      });
+
+      for (const proj of aiAnalysis.projectIdeas) {
+        await prisma.projectRecommendation.create({
+          data: {
+            studentProfileId,
+            title: proj.title,
+            problemStatement: proj.problemStatement,
+            whySuited: proj.whySuited,
+            technologiesJson: JSON.stringify(proj.technologies),
+            skillsDevelopedJson: JSON.stringify(proj.skillsDeveloped),
+            difficulty: proj.difficulty,
+            estimatedDuration: proj.estimatedDuration,
+            milestonesJson: JSON.stringify(proj.milestones),
+          },
+        });
+      }
+    }
+
+    return res.json({
+      message: 'Profile synchronization and Grok AI analysis completed successfully',
+      placementReadiness: calculated.overallReadinessIndex,
+      calculated,
+      aiAnalysis,
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: err.message || 'Synchronization failed' });
+  }
+});
+
+export default router;

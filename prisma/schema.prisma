@@ -1,0 +1,260 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String          @id @default(uuid())
+  email         String          @unique
+  password      String
+  name          String
+  role          String          @default("STUDENT") // "STUDENT" | "ADMIN"
+  department    String?         @default("Computer Science")
+  branch        String?         @default("B.Tech CSE")
+  passoutYear   Int?            @default(2027)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  studentProfile StudentProfile?
+}
+
+model StudentProfile {
+  id                    String               @id @default(uuid())
+  userId                String               @unique
+  user                  User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  username              String               @unique
+  resumeUrl             String?
+  placementReadiness    Float                @default(0)
+  summary               String?
+  targetRole            String?              @default("Software Development Engineer")
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  connections           PlatformConnection[]
+  gitHubProfile         GitHubProfile?
+  codingProfiles        CodingProfile[]
+  projects              Project[]
+  skills                StudentSkill[]
+  skillSnapshots        SkillSnapshot[]
+  activitySnapshots     ActivitySnapshot[]
+  recommendations       Recommendation[]
+  actionItems           ActionItem[]
+  projectRecommendations ProjectRecommendation[]
+  companyReadinesses    CompanyReadiness[]
+  aiAnalyses            AIAnalysis[]
+  syncJobs              SyncJob[]
+}
+
+model PlatformConnection {
+  id               String         @id @default(uuid())
+  studentProfileId String
+  studentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  platform         String         // GITHUB, LEETCODE, CODECHEF, HACKERRANK, LINKEDIN
+  profileUrl       String
+  isConnected      Boolean        @default(false)
+  lastSyncedAt     DateTime?
+  errorState       String?
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@unique([studentProfileId, platform])
+}
+
+model GitHubProfile {
+  id               String         @id @default(uuid())
+  studentProfileId String         @unique
+  studentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  totalRepos       Int            @default(0)
+  publicRepos      Int            @default(0)
+  totalStars       Int            @default(0)
+  totalForks       Int            @default(0)
+  totalCommits     Int            @default(0)
+  prCount          Int            @default(0)
+  issueCount       Int            @default(0)
+  languagesJson    String         @default("{}")
+  topReposJson     String         @default("[]")
+  updatedAt        DateTime       @updatedAt
+}
+
+model CodingProfile {
+  id                   String         @id @default(uuid())
+  studentProfileId     String
+  studentProfile       StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  platform             String         // LEETCODE, CODECHEF, HACKERRANK
+  totalSolved          Int            @default(0)
+  easySolved           Int            @default(0)
+  mediumSolved         Int            @default(0)
+  hardSolved           Int            @default(0)
+  contestRating        Float          @default(0)
+  globalRank           Int            @default(0)
+  contestsParticipated Int            @default(0)
+  updatedAt            DateTime       @updatedAt
+
+  @@unique([studentProfileId, platform])
+}
+
+model Project {
+  id               String         @id @default(uuid())
+  studentProfileId String
+  studentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  name             String
+  description      String
+  repoUrl          String?
+  technologiesJson String         @default("[]")
+  stars            Int            @default(0)
+  forks            Int            @default(0)
+  commitCount      Int            @default(0)
+  activityLevel    String         @default("MEDIUM") // HIGH, MEDIUM, LOW
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+}
+
+model Skill {
+  id          String         @id @default(uuid())
+  name        String         @unique
+  category    String         // DSA, OOP, DBMS, OS, Networks, Web Dev, Backend, System Design, Git, Aptitude, Communication
+  description String?
+  
+  studentSkills StudentSkill[]
+}
+
+model StudentSkill {
+  id               String         @id @default(uuid())
+  studentProfileId String
+  studentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  skillId          String
+  skill            Skill          @relation(fields: [skillId], references: [id], onDelete: Cascade)
+  score            Float          @default(0) // 0 - 100
+  verifiedBy       String         @default("DETERMINISTIC") // GITHUB, LEETCODE, GROK, DETERMINISTIC
+  lastCalculatedAt DateTime       @default(now())
+
+  @@unique([studentProfileId, skillId])
+}
+
+model SkillSnapshot {
+  id               String         @id @default(uuid())
+  studentProfileId String
+  studentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  snapshotMonth    String         // e.g. "2026-06", "2026-07", "2026-08"
+  dsaScore         Float          @default(0)
+  dbmsScore        Float          @default(0)
+  osScore          Float          @default(0)
+  devScore         Float          @default(0)
+  overallScore     Float          @default(0)
+  createdAt        DateTime       @default(now())
+}
+
+model ActivitySnapshot {
+  id               String         @id @default(uuid())
+  studentProfileId String
+  studentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  date             String         // "2026-08-19"
+  codingSolved     Int            @default(0)
+  commits          Int            @default(0)
+  rating           Float          @default(0)
+  createdAt        DateTime       @default(now())
+}
+
+model Recommendation {
+  id               String         @id @default(uuid())
+  studentProfileId String
+  studentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  title            String
+  description      String
+  category         String         // DSA, System Design, Project, CS Fundamentals, Soft Skills
+  priority         String         @default("MEDIUM") // HIGH, MEDIUM, LOW
+  effort           String         @default("MEDIUM") // LOW, MEDIUM, HIGH
+  reason           String
+  completed        Boolean        @default(false)
+  createdAt        DateTime       @default(now())
+}
+
+model ActionItem {
+  id               String         @id @default(uuid())
+  studentProfileId String
+  studentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  title            String
+  category         String         // Coding, Documentation, Theory, Project, Mock Interview
+  priority         String         @default("MEDIUM") // HIGH, MEDIUM, LOW
+  estimatedHours   Int            @default(2)
+  reason           String
+  completed        Boolean        @default(false)
+  completedAt      DateTime?
+  createdAt        DateTime       @default(now())
+}
+
+model ProjectRecommendation {
+  id               String         @id @default(uuid())
+  studentProfileId String
+  studentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  title            String
+  problemStatement String
+  whySuited        String
+  technologiesJson String         @default("[]")
+  skillsDevelopedJson String      @default("[]")
+  difficulty       String         @default("INTERMEDIATE") // BEGINNER, INTERMEDIATE, ADVANCED
+  estimatedDuration String        @default("2 weeks")
+  milestonesJson   String         @default("[]")
+  createdAt        DateTime       @default(now())
+}
+
+model TargetCompany {
+  id                 String               @id @default(uuid())
+  name               String               @unique
+  logoUrl            String?
+  targetRolesJson    String               @default("[]")
+  difficultyLevel    String               @default("TIER-1") // TIER-1, PRODUCT, SERVICE, STARTUP
+  overview           String
+  requirements       CompanyRequirement[]
+  companyReadinesses CompanyReadiness[]
+}
+
+model CompanyRequirement {
+  id              String        @id @default(uuid())
+  companyId       String
+  company         TargetCompany @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  skillName       String
+  minScore        Float         @default(70)
+  priority        String        @default("HIGH")
+  topicsJson      String        @default("[]")
+}
+
+model CompanyReadiness {
+  id                      String         @id @default(uuid())
+  studentProfileId        String
+  studentProfile          StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  companyId               String
+  company                 TargetCompany  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  readinessScore          Float          @default(0)
+  status                  String         @default("NEEDS_WORK") // READY, MODERATE, NEEDS_WORK
+  missingSkillsJson       String         @default("[]")
+  recommendedActionsJson  String         @default("[]")
+  updatedAt               DateTime       @updatedAt
+
+  @@unique([studentProfileId, companyId])
+}
+
+model AIAnalysis {
+  id                   String         @id @default(uuid())
+  studentProfileId     String
+  studentProfile       StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  rawInputJson         String
+  structuredOutputJson String
+  readinessScore       Float          @default(0)
+  analyzedAt           DateTime       @default(now())
+}
+
+model SyncJob {
+  id               String         @id @default(uuid())
+  studentProfileId String
+  studentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  platform         String
+  status           String         // PENDING, SUCCESS, FAILED
+  logMessage       String?
+  startedAt        DateTime       @default(now())
+  completedAt      DateTime?
+}
