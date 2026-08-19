@@ -1,0 +1,38 @@
+services:
+  - type: web
+    name: preptalk-api
+    env: node
+    region: oregon
+    rootDir: server
+    buildCommand: npm install && npm run build && cd .. && npx prisma migrate deploy
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: preptalk-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: FRONTEND_URL
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_API_URL
+        value: https://api.groq.com/openai/v1/chat/completions
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      - key: GROK_API_KEY
+        sync: false
+      - key: GROK_API_URL
+        value: https://api.x.ai/v1/chat/completions
+      - key: GROK_MODEL
+        value: grok-beta
+
+databases:
+  - name: preptalk-db
+    region: oregon
+    plan: free
+    databaseName: preptalk
+    user: preptalk

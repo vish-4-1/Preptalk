@@ -1,7 +1,10 @@
 import axios from 'axios';
 import { ActionItem, StudentProfile, TargetCompany } from '../types';
 
-const API_BASE = '/api';
+// In production: VITE_API_URL points to Render backend (e.g. https://preptalk-api.onrender.com)
+// In local dev: falls back to '/api' which the Vite proxy forwards to localhost:5000
+const API_BASE = import.meta.env.VITE_API_URL ? `${import.meta.env.VITE_API_URL}/api` : '/api';
+
 
 export const api = axios.create({
   baseURL: API_BASE,
