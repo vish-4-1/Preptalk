@@ -1,83 +1,113 @@
-# Preptalk (PrepTrack) — Presentation Pitch Deck
-**AI-Powered Placement Intelligence & Autonomous Career Coaching Platform**
+# Smart India Hackathon — Official Presentation Deck
+
+**Project Name**: Preptalk (PrepTrack)  
+**Theme**: Smart Education / Placement Intelligence & Skill Assessment  
+**Category**: Software  
+**Tagline**: *Unified Multi-Platform Telemetry & Autonomous AI Placement Coach*
 
 ---
 
-## Slide 1: Title & Introduction
-- **Header**: Preptalk (PrepTrack)
-- **Subtitle**: Transforming Campus Placements with Deterministic Telemetry & Autonomous AI Career Coaching
-- **Team**: Smart India Hackathon (SIH) 2026 / Preptalk Core Team
-- **Tagline**: *"Stop guessing placement readiness. Measure verified engineering telemetry and coach students autonomously."*
-- **Visuals**: Product screenshot collage showing Placement Readiness Index (85/100), AI Coach conversation, and Company Readiness radar.
+## Slide 1: Title Slide (Official SIH Template)
+
+- **Problem Statement Title**: Automated Continuous Skill Telemetry & Autonomous Placement Coaching for Engineering Students
+- **Project Name**: **Preptalk (PrepTrack)**
+- **Theme**: Smart Education / EdTech & AI
+- **Category**: Software Edition
+- **Institute**: Anna University (MIT Campus)
+- **Team Name**: Team Ryzen / Preptalk Core
+- **Team Lead & Members**:
+  - Vishal Kumar D (Team Lead & Full-Stack / AI Systems Engineer)
+  - Core Engineering Team
+- **GitHub Repository**: `https://github.com/vish-4-1/Preptalk`
+
+> **Speaker Note**:
+> *"Good morning respected jury members. We are presenting Preptalk—an intelligent, telemetry-driven placement preparation platform that combines deterministic mathematical skill scoring with an autonomous AI Placement Coach to eliminate placement preparation guesswork for engineering students."*
 
 ---
 
-## Slide 2: The Problem with Campus Placements
-- **1. Resume Inflation & Unverified Claims**: Students submit static PDFs with self-rated "5-star Java" without verifiable coding evidence.
-- **2. Fragmented Developer Footprint**: Coding profiles (LeetCode, GitHub, CodeChef, HackerRank) are isolated; placement cells lack unified visibility.
-- **3. Generic, Non-Actionable Advice**: "Practice more DSA" doesn't tell a student *which* specific gap (e.g., DBMS Indexing or Graph DP) is blocking them from Amazon or Google.
-- **4. Manual Placement Cell Bottleneck**: Faculty placement officers cannot manually review 1,000+ candidates every week.
+## Slide 2: The Core Problem Statement
+
+### Why Current Placement Preparation is Broken:
+
+1. **Resume Inflation & Self-Reported Bias**:
+   - Students claim "5-star Java" or "expert in DSA" on static resumes with zero verifiable evidence.
+   - Recruiters and college placement cells cannot verify actual problem-solving or architectural ability.
+2. **Fragmented Developer Footprint**:
+   - A student practices across LeetCode, GitHub, CodeChef, and HackerRank. These platforms are isolated data silos.
+3. **Monolithic LLM Hallucinations in Existing Tools**:
+   - Generic AI tools ask an LLM to "score" a resume. The LLM guesses scores (producing 70% one minute and 85% the next).
+4. **Placement Cell Scalability Bottleneck**:
+   - Placement officers cannot manually monitor 1,000+ candidates or diagnose individual skill deficits.
 
 ---
 
-## Slide 3: Our Solution — Preptalk
-- **Unified Profile Ingestion**: Automatic ingestion of live public telemetry across GitHub, LeetCode, CodeChef, HackerRank, and PDF Resumes.
-- **Deterministic Skill Engine**: Pure mathematical, reproducible skill scoring (0–100) across DSA, Development, DBMS, and OS. No hallucinations in scoring.
-- **Autonomous AI Placement Agent**: A multi-step reasoning coach (`Observe → Reason → Act → Check`) that uses 13 tools to formulate personalized roadmaps.
-- **Dynamic Company Readiness Matching**: Dimension-by-dimension vector comparison against Tier-1 company hiring criteria (Amazon, Google, Microsoft).
+## Slide 3: Proposed Solution — Preptalk Architecture
 
----
+### A Groundbreaking Two-Tier Architecture:
 
-## Slide 4: High-Level System Architecture
 ```text
-  [Student Candidate]
-          │ (Profile URLs & PDF Resume)
-          ▼
-  [Express REST Backend & Security Layer]
-          │
-  [Platform Connector Pipeline]
-  ├── GitHub API (Search commits, PRs, issues, languages)
-  ├── LeetCode API (Difficulty distribution, contest rating)
-  ├── CodeChef / HackerRank Scrapers (Contest rank, stars)
-  └── PDF Resume Parser (Extracted skills & architectures)
-          │
-  [Deterministic Skill Engine] ──► Placement Readiness Index (PRI: 0-100)
-          │
-  [AI Placement Agent (Groq / Llama 3.3 70B)]
-  ├── Observe (Profile & Skill Telemetry)
-  ├── Reason (Deficit Identification vs Company Benchmarks)
-  ├── Act (Create Learning Plans & Action Items)
-  └── Check (Validate & Return Structured Advice)
-          │
-  [PostgreSQL / SQLite via Prisma] ──► [React 18 SPA Dashboard & Coach UI]
+┌─────────────────────────────────────────────────────────────────────────┐
+│ TIER 1: DETERMINISTIC SKILL ENGINE (Objective Measurement)               │
+│ - Ingests live telemetry (GitHub, LeetCode, CodeChef, HackerRank, Resume)│
+│ - Computes reproducible scores (0-100) across DSA, Dev, DBMS, OS, PRI   │
+│ - ZERO hallucinations in scoring. Pure mathematical formulations.      │
+└────────────────────────────────────┬────────────────────────────────────┘
+                                     │ Verified Telemetry
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│ TIER 2: AUTONOMOUS AI PLACEMENT AGENT (Strategic Coaching & Planning)   │
+│ - Multi-step Observe → Reason → Act → Check autonomous loop (Max 8 steps│
+│ - 13 Registered Tools with strict Zod validation & candidate data scope │
+│ - Dynamically generates adaptive 7-Day Plans & Action Center tasks      │
+└────────────────────────────────────┬────────────────────────────────────┘
+                                     │
+                                     ▼
+┌─────────────────────────────────────────────────────────────────────────┐
+│ TIER 3: RECRUITER & COMPANY BENCHMARK ENGINE                            │
+│ - Multi-dimensional vector matching against Amazon, Google, Microsoft   │
+│ - Identifies exact dimensional blockers (e.g. DBMS deficit for Amazon)  │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Slide 5: The Ingestion & Verification Engine
-- **GitHub Telemetry**: Queries live GitHub search APIs (`/search/commits`, `/search/issues?type=pr`, `/search/issues?type=issue`) to measure authentic code volume and repository depth.
-- **Competitive Programming Telemetry**: Normalizes solve counts across LeetCode, CodeChef, and HackerRank with contest rating percentiles.
-- **Resume Document Parser**: Ingests student PDF resumes, extracting architectural keywords, frameworks, and verified project titles.
-- **Continuous Sync**: One-click global synchronization re-evaluates student telemetry with sliding-window rate limiters.
+## Slide 4: Telemetry Connectors & Normalization Pipeline
+
+### Authentic Public Telemetry Ingestion (No Fakes):
+- **GitHub Connector**:
+  - Live query to GitHub Search APIs (`/search/commits`, `/search/issues?type=pr`, `/search/issues?type=issue`).
+  - Measures total commits, pull request collaboration, repository star impact, and multi-language codebase depth.
+- **Competitive Coding Connectors**:
+  - **LeetCode**: Easy / Medium / Hard difficulty distribution, contest rating, and global ranking.
+  - **CodeChef & HackerRank**: Live contest participation, star ratings, and domain challenge scores.
+- **PDF Resume Document Parser**:
+  - Extracts framework proficiencies, database architectures, and past project domains.
+- **Sliding-Window Rate Limiting**:
+  - Protects upstream platform APIs with sliding-window request throttling.
 
 ---
 
-## Slide 6: Deterministic Skill Engine vs LLM Hallucinations
-- **The Core Architectural Innovation**:
-  - Many platforms ask an LLM to "guess" a student's score. This causes non-deterministic, fluctuating ratings.
-  - **Preptalk's Principle**: **The Skill Engine owns objective measurement; the AI Agent operates strictly ABOVE the scoring engine as a coach.**
-- **Score Formulations (0–100)**:
-  - **DSA Score**: Weighted sum of LeetCode difficulty (Easy: 0.15, Medium: 0.45, Hard: 0.40) + Contest Rating factor.
-  - **Dev Score**: Verified commit frequency + PR collaboration + star impact + language diversity.
-  - **CS Fundamentals**: DBMS & OS scores inferred from repository technologies, SQL schemas, and domain challenges.
-  - **PRI (Placement Readiness Index)**: `0.35 * DSA + 0.25 * Dev + 0.20 * DBMS + 0.20 * OS`.
+## Slide 5: Deterministic Skill Engine Mathematics
+
+### How Scores are Calculated (0–100):
+
+1. **DSA Mastery Score**:
+   $$\text{DSA} = \min\left(100, \left(\frac{\text{Easy} \times 0.15 + \text{Medium} \times 0.45 + \text{Hard} \times 0.40}{300}\right) \times 70 + \text{RatingBonus}\right)$$
+2. **Development & Architecture Score**:
+   $$\text{Dev} = \text{CommitScore}(30\%) + \text{PRScore}(25\%) + \text{StarImpact}(20\%) + \text{LanguageDiversity}(25\%)$$
+3. **CS Fundamentals (DBMS & OS)**:
+   - Evaluated from verified SQL schema projects, query optimization, operating system concurrency repos, and domain challenge badges.
+4. **Placement Readiness Index (PRI)**:
+   $$\mathbf{PRI} = 0.35 \times \text{DSA} + 0.25 \times \text{Dev} + 0.20 \times \text{DBMS} + 0.20 \times \text{OS}$$
 
 ---
 
-## Slide 7: Autonomous AI Placement Agent Architecture
-- **Not a Single Prompt**: Implements an autonomous multi-step execution loop (`MAX_AGENT_STEPS = 8`).
-- **13 Registered Safe Tools (Strictly Scoped)**:
-  1. `get_student_profile` — Candidate identity & target role
+## Slide 6: Autonomous AI Placement Agent Architecture
+
+### The Observe → Reason → Act → Check Loop:
+
+- **13 Registered Tools (Scoped via JWT Claims)**:
+  1. `get_student_profile` — Identity, department, and target role
   2. `get_skill_scores` — Verified objective metric breakdown
   3. `get_skill_history` — 4-month historical trajectory trend
   4. `get_platform_stats` — Raw platform telemetry counts
@@ -90,68 +120,90 @@
   11. `create_project_recommendation` — Tailored "Build Next" project ideas
   12. `create_learning_plan` — Multi-day structured daily study roadmaps
   13. `refresh_platform_data` — Triggers telemetry synchronization
-- **Zero-Downtime Deterministic Fallback**: If external LLM APIs are offline, our rule-based agent reasoning executes the identical Observe-Reason-Act loop.
+- **Zero-Downtime Deterministic Fallback**:
+  - If Groq/LLM APIs are offline, our rule-based agent logic executes the identical reasoning loop seamlessly.
 
 ---
 
-## Slide 8: Multi-Dimensional Company Benchmark Matching
-- **Beyond Generic Matching**: Companies have distinct dimensional expectations:
-  - **Amazon SDE**: Requires high DSA (82+), System Scalability (78+), and DBMS (75+).
-  - **Microsoft**: Emphasizes Operating Systems Concurrency (78+) and Tree Algorithms (80+).
-- **Dimension Matching Vector**:
-  $$\text{Match} = \frac{\sum (\text{Student Score} / \text{Min Score}) \times \text{Weight}}{\sum \text{Weight}} \times 100$$
-- **Instant Gap Identification**: Tells candidate: *"Your DSA (94) qualifies for Amazon, but your DBMS (72/75) is your primary hiring blocker."*
+## Slide 7: Multi-Dimensional Company Benchmark Matching
+
+### Precision Hiring Readiness:
+
+| Target Company | Primary Focus Dimensions | Minimum Score Criteria | Why Students Fail |
+| :--- | :--- | :--- | :--- |
+| **Amazon (Tier-1)** | DSA (82+), System Scalability (78+), DBMS (75+) | Multi-dimensional Vector $\ge 85\%$ | High DSA but low DBMS/Indexing fundamentals |
+| **Microsoft (Tier-1)** | Tree DSA (80+), OS Concurrency (78+) | Multi-dimensional Vector $\ge 85\%$ | Lack of OS process synchronization depth |
+| **Google (Tier-1)** | Advanced Graph DSA (88+), Systems (82+) | Multi-dimensional Vector $\ge 90\%$ | Sub-optimal space-time complexity analysis |
+
+$$\text{Company Match \%} = \frac{\sum (\text{Candidate Score} / \text{Required Score}) \times \text{Weight}}{\sum \text{Weight}} \times 100$$
 
 ---
 
-## Slide 9: User Experience & Interactive AI Coach UI (`/coach`)
-- **Real-Time AI Placement Coach**:
-  - Interactive consultation with quick prompt chips (*"Prepare me for Amazon"*, *"What should I focus on this week?"*).
-- **Visual Tool Execution Trace Drawer**:
-  - Transparently shows every tool invoked by the agent (`get_skill_scores`, `calculate_company_readiness`, `create_learning_plan`).
-- **Dynamic 7-Day Strategic Plan Card**:
-  - Displays day-by-day practice schedules, estimated hours, and milestone goals.
-- **One-Click Action Center Transfer**:
-  - Candidates click **"Start Plan"** to automatically insert all 13 daily tasks into their personal Action Center.
+## Slide 8: Technology Stack & Technical Rigor
+
+- **Frontend**: React 18, Vite, TypeScript, Tailwind CSS, Lucide Icons, Recharts.
+- **Backend API**: Node.js, Express, TypeScript, Zod Schema Validation.
+- **Database & ORM**: PostgreSQL / SQLite with Prisma ORM (`AgentSession`, `StudentProfile`, `SkillSnapshot`).
+- **AI & LLM**: Groq Cloud (`llama-3.3-70b-versatile`) with OpenAI Function Calling format + Native Deterministic Agent Engine.
+- **Testing & QA**: Vitest (16/16 Unit, Integration & Live Demo tests passing, 100% test pass rate).
+- **Security**: Strict JWT authentication, sliding-window rate limiters, candidate-scoped tool contexts.
 
 ---
 
-## Slide 10: Security, Privacy & Enterprise Readiness
-- **Candidate Data Isolation**: All tool calls are injected with `studentProfileId` extracted from cryptographically verified JWT tokens. No cross-student leakage.
-- **Zero Arbitrary Execution**: Agent cannot run arbitrary SQL, alter passwords, or delete profile records.
-- **Sliding-Window Rate Limiting**: Protects authentication and platform synchronization endpoints against brute force and scraping.
-- **Database Agnostic**: Fully compatible with PostgreSQL (Production) and SQLite (Local Zero-Config).
+## Slide 9: Live Case Study & Demo Results
 
----
+### Verified Student Profile: Vishal Kumar D (Anna Univ MIT Campus CSE)
 
-## Slide 11: Real Candidate Demonstration & Results
-- **Case Study Candidate**: Vishal Kumar D (Anna University MIT Campus CSE, Class of 2027)
-- **Live Ingested Telemetry**:
-  - 185 CodeChef problems (Rating: 1742) + 140 HackerRank problems + 43 LeetCode problems
+- **Ingested Signals**:
+  - 185 CodeChef Solved (1742 Rating)
+  - 140 HackerRank Solved
+  - 43 LeetCode Solved
   - 6 GitHub Repositories (145 commits, 8 PRs, C++ & TypeScript)
-  - Verified PDF Resume uploaded & parsed
-- **Agent Reasoning Output**:
-  - Verified PRI: **85/100** | DSA: **94/100** | Dev: **68/100**
-  - Strategic Finding: Candidate's algorithmic skill (94) is in the top 5th percentile; agent prescribed a 7-day repository depth and system design sprint to elevate overall placement conversion.
-  - Amazon Placement Readiness: **98/100 (READY)**.
+  - PDF Resume parsed & verified
+- **Engine Output**:
+  - **Placement Readiness Index**: **85/100**
+  - **DSA Mastery**: **94/100**
+  - **Development Score**: **68/100**
+  - **Amazon Readiness**: **98/100 (READY)**
+- **Agent Diagnosis**:
+  - *"DSA is in top 5th percentile (94/100). Primary strategic lever is Development depth (68/100). Prescribing a 7-day system architecture sprint."*
+  - Automatically transferred 13 structured practice tasks into the student's **Action Center**.
 
 ---
 
-## Slide 12: Business Impact & Future Roadmap
-- **For Students**: Removes guesswork, replaces anxiety with structured daily tasks, and prepares them for specific dream companies.
-- **For University Placement Cells**: Automated batch analytics, identifying unplaced students with high potential vs students requiring fundamental mentoring.
-- **Future Roadmap**:
-  - **Phase 2**: Real-time AI Mock Technical Audio Interviews with live speech evaluation.
-  - **Phase 3**: Automated GitHub repository code quality & CI/CD pipeline auditing.
-  - **Phase 4**: Placement Cell Recruiter Portal for direct shortlisting based on verified telemetry.
+## Slide 10: Usability, Feasibility & University Impact
+
+### 1. For Students:
+- Replaces placement anxiety with a structured daily roadmap.
+- Tells them exactly what to practice today to crack their target company.
+
+### 2. For Placement Directors & Faculty:
+- Real-time batch analytics: Instant view of batch PRI distribution, identifying top-performing candidates and students needing intervention.
+
+### 3. For Recruiters:
+- Direct shortlisting based on verified code telemetry rather than self-reported resume claims.
 
 ---
 
-## Slide 13: Summary & Q&A
-- **Key Takeaways**:
-  1. ✅ **Deterministic Grounding**: Unshakeable mathematical scoring base.
-  2. 🤖 **Autonomous AI Placement Agent**: 13 safe tools with full Observe-Reason-Act loop.
-  3. 🏢 **Company Precision**: Multi-dimensional hiring benchmark alignment.
-  4. 🚀 **Production-Ready**: 100% test pass rate, running locally and deployed.
-- **GitHub Repository**: [https://github.com/vish-4-1/Preptalk](https://github.com/vish-4-1/Preptalk)
-- **Open for Questions & Live Interactive Demonstration!**
+## Slide 11: Scalability & Future Roadmap
+
+- **Phase 1 (Completed & Deployed)**:
+  - Multi-platform connector pipeline + Deterministic skill engine + Autonomous AI Coach + Company readiness vector matching.
+- **Phase 2 (Next Quarter)**:
+  - Real-time AI Mock Technical Audio Interviews with speech analysis and runtime coding constraint simulation.
+- **Phase 3 (Enterprise University Rollout)**:
+  - Multi-tenant university placement cell dashboard with automated batch reports and recruiter shortlisting portal.
+
+---
+
+## Slide 12: Summary & Conclusion
+
+1. **Deterministic Grounding**: Unshakeable mathematical scoring—never relies on LLM guessing for core scores.
+2. **True Autonomous Agent**: 13 safe tools with full multi-step reasoning and state memory.
+3. **Live Verified Telemetry**: Authentic API connectors across GitHub, LeetCode, CodeChef, HackerRank, and PDF Resumes.
+4. **100% Production Ready**: Deployed, fully tested with 16 test suites, and running locally.
+
+**Live Application**: [http://localhost:3000/](http://localhost:3000/)  
+**GitHub Repository**: [https://github.com/vish-4-1/Preptalk](https://github.com/vish-4-1/Preptalk)
+
+**Thank You! We are open for Questions & Live Interactive Demonstration.**
