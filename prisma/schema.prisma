@@ -1,7 +1,8 @@
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
+
 
 generator client {
   provider = "prisma-client-js"
@@ -47,7 +48,9 @@ model StudentProfile {
   companyReadinesses    CompanyReadiness[]
   aiAnalyses            AIAnalysis[]
   syncJobs              SyncJob[]
+  agentSessions         AgentSession[]
 }
+
 
 model PlatformConnection {
   id               String         @id @default(uuid())
@@ -258,3 +261,16 @@ model SyncJob {
   startedAt        DateTime       @default(now())
   completedAt      DateTime?
 }
+
+model AgentSession {
+  id               String         @id @default(uuid())
+  studentProfileId String
+  studentProfile   StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  userMessage      String
+  agentResponse    String
+  toolCallsJson    String         @default("[]")
+  planJson         String?
+  actionsJson      String?
+  createdAt        DateTime       @default(now())
+}
+

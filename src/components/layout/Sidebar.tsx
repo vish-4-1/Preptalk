@@ -8,7 +8,9 @@ import {
   Code2,
   Building2,
   Sparkles,
+  Bot,
 } from 'lucide-react';
+
 
 interface SidebarProps {
   isDemoMode: boolean;
@@ -24,13 +26,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onToggleAdminMode,
 }) => {
   const navItems = [
+
     { label: 'Dashboard', icon: LayoutDashboard, path: '/' },
+    { label: 'AI Placement Coach', icon: Bot, path: '/coach' },
     { label: 'Build Your Profile', icon: UserCheck, path: '/onboarding' },
     { label: 'Track Record', icon: TrendingUp, path: '/track-record' },
     { label: 'Action Center', icon: CheckSquare, path: '/actions' },
     { label: 'Build Next', icon: Code2, path: '/build-next' },
     { label: 'Target Companies', icon: Building2, path: '/companies' },
   ];
+
+
 
   return (
     <aside className="w-64 bg-[#FFFFFF] border-r border-[#E5E7EB] flex flex-col justify-between shrink-0 select-none shadow-sm">

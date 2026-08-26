@@ -31,9 +31,11 @@ async function syncRealVishalProfile() {
           devStats = result.data;
           console.log(`GitHub Repos: ${devStats.publicRepos}, Commits: ${devStats.totalCommits}, Stars: ${devStats.totalStars}`);
         } else if (['LEETCODE', 'CODECHEF', 'HACKERRANK'].includes(platform)) {
-          codingStatsList.push(result.data);
-          console.log(`${platform} Solved: ${result.data.totalSolved}, Rating: ${result.data.contestRating}`);
+          const cData = result.data as any;
+          codingStatsList.push(cData);
+          console.log(`${platform} Solved: ${cData.totalSolved}, Rating: ${cData.contestRating}`);
         }
+
       }
     } catch (err: any) {
       console.log(`Platform ${platform} notice:`, err.message);

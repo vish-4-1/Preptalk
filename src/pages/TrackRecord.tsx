@@ -30,18 +30,64 @@ export const TrackRecord: React.FC<TrackRecordProps> = ({ profile }) => {
         { snapshotMonth: 'Aug 2026', dsaScore: 82, devScore: 78, dbmsScore: 72, osScore: 70, overallScore: 78 },
       ];
 
+  // Derive difficulty metrics dynamically from live coding profiles if available
+  let totalEasy = 0;
+  let totalMedium = 0;
+  let totalHard = 0;
+  let maxRating = 0;
+  let totalContests = 0;
+
+  if (profile?.codingProfiles && profile.codingProfiles.length > 0) {
+    profile.codingProfiles.forEach((cp) => {
+      totalEasy += cp.easySolved || 0;
+      totalMedium += cp.mediumSolved || 0;
+      totalHard += cp.hardSolved || 0;
+      if ((cp.contestRating || 0) > maxRating) maxRating = Math.round(cp.contestRating);
+      totalContests += cp.contestsParticipated || 0;
+    });
+  } else {
+    totalEasy = 140;
+    totalMedium = 145;
+    totalHard = 27;
+    maxRating = 1742;
+    totalContests = 16;
+  }
+
   const difficultyData = [
-    { name: 'Easy Solved', count: 140, color: '#059669' },
-    { name: 'Medium Solved', count: 145, color: '#d97706' },
-    { name: 'Hard Solved', count: 27, color: '#dc2626' },
+    { name: 'Easy Solved', count: totalEasy, color: '#059669' },
+    { name: 'Medium Solved', count: totalMedium, color: '#d97706' },
+    { name: 'Hard Solved', count: totalHard, color: '#dc2626' },
   ];
 
-  const techLanguageData = [
-    { language: 'TypeScript', repos: 8, commits: 180 },
-    { language: 'Python', repos: 5, commits: 140 },
-    { language: 'Java', repos: 3, commits: 110 },
-    { language: 'C++', repos: 2, commits: 50 },
-  ];
+  // Derive tech languages dynamically from GitHub profile
+  let techLanguageData: { language: string; repos: number; commits: number }[] = [];
+  if (profile?.gitHubProfile?.languagesJson) {
+    try {
+      const langs = JSON.parse(profile.gitHubProfile.languagesJson);
+      techLanguageData = Object.entries(langs).map(([lang, count]) => ({
+        language: lang,
+        repos: Number(count),
+        commits: Number(count) * 22,
+      }));
+    } catch {
+      // Fallback
+    }
+  }
+
+  if (techLanguageData.length === 0) {
+    techLanguageData = [
+      { language: 'TypeScript', repos: 8, commits: 180 },
+      { language: 'Python', repos: 5, commits: 140 },
+      { language: 'Java', repos: 3, commits: 110 },
+      { language: 'C++', repos: 2, commits: 50 },
+    ];
+  }
+
+  const initialScore = snapshotData[0]?.overallScore || 62;
+  const latestScore = snapshotData[snapshotData.length - 1]?.overallScore || 78;
+  const growth = Math.round(latestScore - initialScore);
+  const latestDsa = snapshotData[snapshotData.length - 1]?.dsaScore || 82;
+  const latestDev = snapshotData[snapshotData.length - 1]?.devScore || 78;
 
   return (
     <div className="space-y-6 max-w-6xl mx-auto">
@@ -57,16 +103,22 @@ export const TrackRecord: React.FC<TrackRecordProps> = ({ profile }) => {
           </p>
         </div>
 
-        <Badge variant="info">Historical Snapshots: 4 Months Active</Badge>
+        <Badge variant="info">Historical Snapshots: {snapshotData.length} Snapshots Recorded</Badge>
       </div>
 
       {/* Overview Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <StatCard label="Overall Score Growth" value="62 → 78" subtext="+16 pts over 4 months" icon={TrendingUp} />
-        <StatCard label="DSA Mastery" value="82/100" subtext="Up from 68 in May" icon={Code} />
-        <StatCard label="Dev & Projects" value="78/100" subtext="Up from 60 in May" icon={GitBranch} />
-        <StatCard label="Contests Attended" value="16 Contests" subtext="Peak Rating: 1742" icon={Award} />
+        <StatCard
+          label="Overall Score Growth"
+          value={`${initialScore} → ${latestScore}`}
+          subtext={`${growth >= 0 ? '+' : ''}${growth} pts over ${snapshotData.length} periods`}
+          icon={TrendingUp}
+        />
+        <StatCard label="DSA Mastery" value={`${latestDsa}/100`} subtext={`Solves: ${totalEasy + totalMedium + totalHard} total`} icon={Code} />
+        <StatCard label="Dev & Projects" value={`${latestDev}/100`} subtext={`Public Repos: ${profile?.gitHubProfile?.publicRepos || 6}`} icon={GitBranch} />
+        <StatCard label="Contests Attended" value={`${totalContests} Contests`} subtext={`Peak Rating: ${maxRating}`} icon={Award} />
       </div>
+
 
       {/* Main Historical Growth Line Chart */}
       <div className="bg-[#FFFFFF] border border-[#E5E7EB] p-5 rounded-lg space-y-4 shadow-xs">

@@ -28,7 +28,7 @@ router.get('/', authenticateToken, async (req: AuthenticatedRequest, res) => {
 router.post('/:id/complete', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     const studentProfileId = req.user?.studentProfileId;
-    const { id } = req.params;
+    const id = req.params.id as string;
 
     const action = await prisma.actionItem.findFirst({
       where: { id, studentProfileId },
@@ -40,6 +40,7 @@ router.post('/:id/complete', authenticateToken, async (req: AuthenticatedRequest
 
     const updated = await prisma.actionItem.update({
       where: { id },
+
       data: {
         completed: !action.completed,
         completedAt: !action.completed ? new Date() : null,

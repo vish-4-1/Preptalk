@@ -10,7 +10,18 @@ export interface AuthenticatedRequest extends Request {
   };
 }
 
-const JWT_SECRET = process.env.JWT_SECRET || 'preptrack-placement-secret-key-2026';
+const DEFAULT_SECRET = 'preptrack-placement-secret-key-2026';
+
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('FATAL: JWT_SECRET environment variable must be set in production');
+    }
+    return DEFAULT_SECRET;
+  }
+  return secret;
+}
 
 export function authenticateToken(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   const authHeader = req.headers['authorization'];
@@ -21,7 +32,8 @@ export function authenticateToken(req: AuthenticatedRequest, res: Response, next
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
+    const secret = getJwtSecret();
+    const decoded = jwt.verify(token, secret) as any;
     req.user = decoded;
     next();
   } catch (err) {
@@ -35,3 +47,4 @@ export function requireAdmin(req: AuthenticatedRequest, res: Response, next: Nex
   }
   next();
 }
+

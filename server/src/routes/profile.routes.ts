@@ -5,6 +5,8 @@ import { connectPlatformSchema } from '../validators';
 import { normalizerService } from '../services/normalizer.service';
 import { skillEngineService } from '../services/skillEngine.service';
 import { grokService } from '../services/grok.service';
+import { NormalizedDevStats } from '../types';
+
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -126,7 +128,7 @@ router.post('/sync', authenticateToken, async (req: AuthenticatedRequest, res) =
 
         if (result.success && result.data) {
           if (conn.platform === 'GITHUB') {
-            devStats = result.data;
+            devStats = result.data as NormalizedDevStats;
             await prisma.gitHubProfile.upsert({
               where: { studentProfileId },
               update: {
@@ -154,7 +156,8 @@ router.post('/sync', authenticateToken, async (req: AuthenticatedRequest, res) =
               },
             });
           } else if (['LEETCODE', 'CODECHEF', 'HACKERRANK'].includes(conn.platform)) {
-            codingStatsList.push(result.data);
+            const codingData = result.data as any;
+            codingStatsList.push(codingData);
             await prisma.codingProfile.upsert({
               where: {
                 studentProfileId_platform: {
@@ -163,27 +166,28 @@ router.post('/sync', authenticateToken, async (req: AuthenticatedRequest, res) =
                 },
               },
               update: {
-                totalSolved: result.data.totalSolved,
-                easySolved: result.data.easySolved,
-                mediumSolved: result.data.mediumSolved,
-                hardSolved: result.data.hardSolved,
-                contestRating: result.data.contestRating,
-                globalRank: result.data.globalRank,
-                contestsParticipated: result.data.contestsParticipated,
+                totalSolved: codingData.totalSolved,
+                easySolved: codingData.easySolved,
+                mediumSolved: codingData.mediumSolved,
+                hardSolved: codingData.hardSolved,
+                contestRating: codingData.contestRating,
+                globalRank: codingData.globalRank,
+                contestsParticipated: codingData.contestsParticipated,
               },
               create: {
                 studentProfileId,
                 platform: conn.platform,
-                totalSolved: result.data.totalSolved,
-                easySolved: result.data.easySolved,
-                mediumSolved: result.data.mediumSolved,
-                hardSolved: result.data.hardSolved,
-                contestRating: result.data.contestRating,
-                globalRank: result.data.globalRank,
-                contestsParticipated: result.data.contestsParticipated,
+                totalSolved: codingData.totalSolved,
+                easySolved: codingData.easySolved,
+                mediumSolved: codingData.mediumSolved,
+                hardSolved: codingData.hardSolved,
+                contestRating: codingData.contestRating,
+                globalRank: codingData.globalRank,
+                contestsParticipated: codingData.contestsParticipated,
               },
             });
           }
+
         }
       } catch (connErr: any) {
         await prisma.platformConnection.update({

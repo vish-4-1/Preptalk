@@ -109,3 +109,43 @@ export interface StudentProfile {
   projectRecommendations?: ProjectRecommendation[];
   aiAnalyses?: any[];
 }
+
+export interface AgentToolTrace {
+  toolName: string;
+  description: string;
+  success: boolean;
+}
+
+export interface LearningPlanPriority {
+  skill: string;
+  priority: 'HIGH' | 'MEDIUM' | 'LOW';
+  reason: string;
+}
+
+export interface DailyLearningTask {
+  day: number;
+  focusArea: string;
+  tasks: string[];
+  estimatedHours: number;
+}
+
+export interface LearningPlan {
+  goal: string;
+  targetRole: string;
+  durationDays: number;
+  priorities: LearningPlanPriority[];
+  dailyPlan: DailyLearningTask[];
+  milestones: string[];
+  expectedOutcome: string;
+}
+
+export interface AgentChatMessage {
+  id: string;
+  sender: 'user' | 'agent';
+  text: string;
+  toolCalls?: AgentToolTrace[];
+  plan?: LearningPlan;
+  actions?: any[];
+  timestamp: string;
+}
+

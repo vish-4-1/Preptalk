@@ -1,6 +1,7 @@
 # Database Architecture
 
-PrepTrack utilizes Prisma ORM with support for PostgreSQL and SQLite.
+PrepTrack (Preptalk) utilizes Prisma ORM with PostgreSQL as the relational database engine.
+
 
 ## Entity Relational Diagram Summary
 

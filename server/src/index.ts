@@ -8,6 +8,9 @@ import actionRoutes from './routes/action.routes';
 import projectRoutes from './routes/project.routes';
 import companyRoutes from './routes/company.routes';
 import adminRoutes from './routes/admin.routes';
+import agentRoutes from './routes/agent.routes';
+
+import { createRateLimiter } from './middleware/rateLimiter';
 
 dotenv.config();
 
@@ -32,14 +35,31 @@ app.use(cors({
 }));
 app.use(express.json());
 
+// Rate limiters for security
+const authLimiter = createRateLimiter({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  maxRequests: 30, // max 30 auth requests per 15 min
+  message: 'Too many authentication attempts from this IP. Please try again later.',
+});
+
+const syncLimiter = createRateLimiter({
+  windowMs: 5 * 60 * 1000, // 5 minutes
+  maxRequests: 15, // max 15 sync requests per 5 min
+  message: 'Profile synchronization rate limit reached. Please wait before syncing again.',
+});
+
 // API Routes
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
+app.use('/api/profile/sync', syncLimiter);
 app.use('/api/profile', profileRoutes);
 app.use('/api/track-record', trackRecordRoutes);
 app.use('/api/actions', actionRoutes);
 app.use('/api/projects', projectRoutes);
 app.use('/api/companies', companyRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/agent', agentRoutes);
+
+
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

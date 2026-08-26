@@ -61,14 +61,22 @@ export class SkillEngineService {
     const devScore = Math.round(Math.min(100, repoScore + starScore + commitScore + langScore));
     const gitScore = Math.round(Math.min(100, (commitScore + repoScore) * 1.4));
 
-    // 3. Core CS Fundamentals Scores (Inferred + Baseline heuristics)
+    // 3. Core CS Fundamentals Scores (Inferred + Multi-signal baseline heuristics)
     // CS Fundamentals baseline grows with hard problems solved and codebase depth
     const baselineCS = Math.min(85, 45 + Math.floor(mediumSolved / 5) + Math.floor(totalRepos * 2));
-    const dbmsScore = Math.min(100, baselineCS + (devStats?.languages['SQL'] || devStats?.languages['Python'] ? 12 : 5));
-    const osScore = Math.min(100, baselineCS + (dsaScore > 70 ? 10 : 0));
-    const oopScore = Math.min(100, baselineCS + (devStats?.languages['Java'] || devStats?.languages['CPlusPlus'] ? 15 : 8));
-    const networksScore = Math.min(100, baselineCS + 4);
+    
+    // Check languages with case-insensitive / variation matching
+    const langKeys = Object.keys(devStats?.languages || {}).map((k) => k.toLowerCase());
+    const hasDbLangs = langKeys.some((k) => k.includes('sql') || k.includes('postgres') || k.includes('mongo') || k.includes('python') || k.includes('typescript'));
+    const hasOopLangs = langKeys.some((k) => k.includes('java') || k.includes('c++') || k.includes('cplusplus') || k.includes('c#') || k.includes('python'));
+    const hasSystemLangs = langKeys.some((k) => k.includes('c++') || k.includes('cplusplus') || k.includes('c') || k.includes('rust') || k.includes('go'));
+
+    const dbmsScore = Math.min(100, baselineCS + (hasDbLangs ? 12 : 5));
+    const osScore = Math.min(100, baselineCS + (hasSystemLangs ? 14 : dsaScore > 70 ? 10 : 4));
+    const oopScore = Math.min(100, baselineCS + (hasOopLangs ? 15 : 8));
+    const networksScore = Math.min(100, baselineCS + (devStats?.topRepos && devStats.topRepos.length > 2 ? 8 : 4));
     const systemDesignScore = Math.min(100, Math.round(dsaScore * 0.45 + devScore * 0.45));
+
 
     // 4. Soft Skills & Aptitude
     const communicationScore = customInputs?.linkedinConnected ? 72 : 58;

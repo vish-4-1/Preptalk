@@ -6,7 +6,18 @@ import { loginSchema, registerSchema } from '../validators';
 
 const router = Router();
 const prisma = new PrismaClient();
-const JWT_SECRET = process.env.JWT_SECRET || 'preptrack-placement-secret-key-2026';
+
+const getJwtSecret = (): string => {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('FATAL: JWT_SECRET environment variable must be set in production');
+    }
+    return 'preptrack-placement-secret-key-2026';
+  }
+  return secret;
+};
+
 
 router.post('/register', async (req, res) => {
   try {
@@ -53,7 +64,7 @@ router.post('/register', async (req, res) => {
         role: user.role,
         studentProfileId: user.studentProfile?.id,
       },
-      JWT_SECRET,
+      getJwtSecret(),
       { expiresIn: '7d' }
     );
 
@@ -101,9 +112,10 @@ router.post('/login', async (req, res) => {
         role: user.role,
         studentProfileId: user.studentProfile?.id,
       },
-      JWT_SECRET,
+      getJwtSecret(),
       { expiresIn: '7d' }
     );
+
 
     return res.json({
       message: 'Login successful',

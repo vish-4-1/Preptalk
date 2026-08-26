@@ -9,8 +9,10 @@ import { ActionCenter } from './pages/ActionCenter';
 import { BuildNext } from './pages/BuildNext';
 import { CompanyPrep } from './pages/CompanyPrep';
 import { AdminDashboard } from './pages/AdminDashboard';
+import { Coach } from './pages/Coach';
 import { StudentProfile } from './types';
 import { getDemoStudentProfile, api } from './services/api';
+
 
 export const App: React.FC = () => {
   const [isDemoMode, setIsDemoMode] = useState<boolean>(true);
@@ -82,6 +84,7 @@ export const App: React.FC = () => {
           <main className="flex-1 overflow-y-auto p-6 bg-[#F8F9FA]">
             <Routes>
               <Route path="/" element={<Dashboard profile={profile} onSync={handleSync} isSyncing={isSyncing} />} />
+              <Route path="/coach" element={<Coach profile={profile} onRefreshProfile={handleSync} />} />
               <Route path="/onboarding" element={<ProfileOnboarding profile={profile} onSync={handleSync} isSyncing={isSyncing} />} />
               <Route path="/track-record" element={<TrackRecord profile={profile} />} />
               <Route path="/actions" element={<ActionCenter profile={profile} onRefresh={handleSync} />} />
@@ -90,6 +93,7 @@ export const App: React.FC = () => {
               <Route path="/admin" element={<AdminDashboard />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+
           </main>
         </div>
       </div>
