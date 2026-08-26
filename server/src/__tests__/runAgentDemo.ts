@@ -1,0 +1,132 @@
+import { PrismaClient } from '@prisma/client';
+import { agentService } from '../agent/agent.service';
+
+const prisma = new PrismaClient();
+
+async function runDemo() {
+  console.log('===============================================================');
+  console.log('       PREPTALK AI PLACEMENT COACH - LIVE AGENT DEMO          ');
+  console.log('===============================================================\n');
+
+  // 1. Ensure a student profile exists in SQLite
+  let user = await prisma.user.findFirst({
+    where: { email: 'vishal.demo@annauniv.edu' },
+    include: { studentProfile: true },
+  });
+
+  if (!user || !user.studentProfile) {
+    console.log('Creating student candidate profile: Vishal Kumar D (Anna Univ MIT Campus CSE)...');
+    user = await prisma.user.create({
+      data: {
+        email: 'vishal.demo@annauniv.edu',
+        password: 'demopassword123',
+        name: 'Vishal Kumar D',
+        role: 'STUDENT',
+        department: 'Computer Science & Engineering',
+        branch: 'B.E. Computer Science (MIT Campus)',
+        passoutYear: 2027,
+        studentProfile: {
+          create: {
+            username: 'vish41_demo',
+            placementReadiness: 74,
+            targetRole: 'Software Development Engineer',
+            summary: '8.54 CGPA, strong DSA foundation, aiming for Tier-1 product placement.',
+            codingProfiles: {
+              create: [
+                { platform: 'CODECHEF', totalSolved: 185, easySolved: 90, mediumSolved: 75, hardSolved: 20, contestRating: 1742, globalRank: 18200, contestsParticipated: 22 },
+                { platform: 'HACKERRANK', totalSolved: 140, easySolved: 80, mediumSolved: 50, hardSolved: 10, contestRating: 1540, globalRank: 52000, contestsParticipated: 8 },
+                { platform: 'LEETCODE', totalSolved: 43, easySolved: 25, mediumSolved: 15, hardSolved: 3, contestRating: 1620, globalRank: 65000, contestsParticipated: 6 },
+              ],
+            },
+            gitHubProfile: {
+              create: {
+                totalRepos: 6,
+                publicRepos: 6,
+                totalStars: 14,
+                totalForks: 5,
+                totalCommits: 145,
+                prCount: 8,
+                issueCount: 3,
+                languagesJson: JSON.stringify({ TypeScript: 4, Java: 3, Python: 2, 'C++': 1 }),
+                topReposJson: JSON.stringify([
+                  { name: 'AU-MIT-Team-Ryzen', description: 'Anna University MIT Campus Team Ryzen Repository', stars: 8, forks: 3, language: 'C++', commitCount: 54 },
+                  { name: 'algo-visualizer', description: 'Interactive graph and tree algorithm solver', stars: 6, forks: 2, language: 'TypeScript', commitCount: 38 },
+                ]),
+              },
+            },
+            skillSnapshots: {
+              create: [
+                { snapshotMonth: 'May 2026', dsaScore: 68, devScore: 60, dbmsScore: 58, osScore: 56, overallScore: 62 },
+                { snapshotMonth: 'Jun 2026', dsaScore: 72, devScore: 65, dbmsScore: 62, osScore: 61, overallScore: 67 },
+                { snapshotMonth: 'Jul 2026', dsaScore: 76, devScore: 71, dbmsScore: 67, osScore: 68, overallScore: 72 },
+                { snapshotMonth: 'Aug 2026', dsaScore: 82, devScore: 78, dbmsScore: 72, osScore: 70, overallScore: 78 },
+              ],
+            },
+          },
+        },
+      },
+      include: { studentProfile: true },
+    });
+  }
+
+  const profileId = user.studentProfile!.id;
+  console.log(`Student Profile Active: ${user.name} (ID: ${profileId})\n`);
+
+  // 2. Scenario 1: "What should I focus on this week?"
+  console.log('---------------------------------------------------------------');
+  console.log('SCENARIO 1: Student Prompt: "What should I focus on this week?"');
+  console.log('---------------------------------------------------------------');
+  console.log('Agent starting Observe -> Reason -> Act loop...\n');
+
+  const response1 = await agentService.processChat(profileId, 'What should I focus on this week?');
+
+  console.log('>>> AGENT EXECUTION TRACE:');
+  response1.toolCalls.forEach((tc) => {
+    console.log(`  [TOOL] ${tc.toolName} -> ${tc.description} (${tc.success ? 'SUCCESS' : 'FAILED'})`);
+  });
+
+  console.log('\n>>> AGENT FINAL RESPONSE:');
+  console.log(response1.message);
+
+  if (response1.plan) {
+    console.log('\n>>> STRATEGIC LEARNING PLAN GENERATED:');
+    console.log(`Goal: ${response1.plan.goal}`);
+    console.log(`Duration: ${response1.plan.durationDays} Days`);
+    console.log('Priorities:');
+    response1.plan.priorities.forEach((p) => console.log(`  - [${p.priority}] ${p.skill}: ${p.reason}`));
+    console.log('Daily Schedule:');
+    response1.plan.dailyPlan.slice(0, 3).forEach((d) => console.log(`  - Day ${d.day} (${d.focusArea}): ${d.tasks.join('; ')}`));
+  }
+
+  // 3. Scenario 2: "Prepare me for Amazon SDE placement drive"
+  console.log('\n---------------------------------------------------------------');
+  console.log('SCENARIO 2: Student Prompt: "Prepare me for Amazon SDE placement drive"');
+  console.log('---------------------------------------------------------------');
+
+  const response2 = await agentService.processChat(profileId, 'Prepare me for Amazon SDE placement drive');
+
+  console.log('>>> AGENT EXECUTION TRACE:');
+  response2.toolCalls.forEach((tc) => {
+    console.log(`  [TOOL] ${tc.toolName} -> ${tc.description} (${tc.success ? 'SUCCESS' : 'FAILED'})`);
+  });
+
+  console.log('\n>>> AGENT FINAL RESPONSE:');
+  console.log(response2.message);
+
+  // 4. Scenario 3: Apply plan to Action Center
+  if (response1.plan) {
+    console.log('\n---------------------------------------------------------------');
+    console.log('SCENARIO 3: Applying Strategic Plan to Student Action Center');
+    console.log('---------------------------------------------------------------');
+    const applyRes = await agentService.applyPlanTasksToActionCenter(profileId, response1.plan);
+    console.log(`Successfully created ${applyRes.count} actionable tasks in Action Center database!`);
+  }
+
+  console.log('\n===============================================================');
+  console.log('                 DEMO EXECUTION COMPLETED                      ');
+  console.log('===============================================================');
+}
+
+runDemo().catch((err) => {
+  console.error('Demo encountered an error:', err);
+});
