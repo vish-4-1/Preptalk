@@ -82,7 +82,7 @@ export class GrokService {
         const rawContent = response.data?.choices?.[0]?.message?.content;
         if (rawContent) {
           const parsed = JSON.parse(rawContent);
-          return grokResponseSchema.parse(parsed);
+          return grokResponseSchema.parse(parsed) as GrokAnalysisResponse;
         }
       } catch (err: any) {
         console.warn('Groq API call failed or timed out. Trying fallback providers.', err.message);
@@ -119,12 +119,13 @@ export class GrokService {
         const rawContent = response.data?.choices?.[0]?.message?.content;
         if (rawContent) {
           const parsed = JSON.parse(rawContent);
-          return grokResponseSchema.parse(parsed);
+          return grokResponseSchema.parse(parsed) as GrokAnalysisResponse;
         }
       } catch (err: any) {
         console.warn('xAI Grok API call failed or timed out. Falling back to deterministic analysis engine.', err.message);
       }
     }
+
 
     // 3. Fallback deterministic analysis engine
     return this.generateFallbackAnalysis(profile, targetCompany);
